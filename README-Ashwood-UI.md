@@ -26,3 +26,9 @@ Use our **Ashwood Gray Mobile UI Kit** from `@/components/ui`.
 * For step flows, use `<CompactWizard behavior="wrap" />` when looping is desired.
 * Keep tap targets ≥44px and preserve `focus-visible` styling.
 
+
+## Troubleshooting
+- Make sure `globals.css` is imported in `_app.tsx`.
+- Ensure `tailwind.config.ts` content paths include `components/ui`.
+- Verify `postcss.config.js` uses `@tailwindcss/postcss` (install via `npm i -D @tailwindcss/postcss`).
+- If styles don’t apply, restart the dev server and delete the `.next` cache.

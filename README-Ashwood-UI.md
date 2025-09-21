@@ -30,4 +30,5 @@ Use our **Ashwood Gray Mobile UI Kit** from `@/components/ui`.
 ## Troubleshooting
 - Make sure `globals.css` is imported in `_app.tsx`.
 - Ensure `tailwind.config.ts` content paths include `components/ui`.
+- Verify `postcss.config.js` uses `@tailwindcss/postcss` (install via `npm i -D @tailwindcss/postcss`).
 - If styles don’t apply, restart the dev server and delete the `.next` cache.

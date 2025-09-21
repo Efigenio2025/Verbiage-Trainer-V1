@@ -1,5 +1,11 @@
 import Head from "next/head";
 import type { NextPage } from "next";
+import { useState } from "react";
+
+import {
+  hasAuthorizedUsersConfigured,
+  isAuthorizedUser,
+} from "@/config/authorizedUsers";
 
 /**
  * Deployment notes:
@@ -10,6 +16,46 @@ import type { NextPage } from "next";
  *   fail with "No Output Directory named 'public' found".
  */
 const Home: NextPage = () => {
+  const [employeeId, setEmployeeId] = useState("");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedEmployeeId = employeeId.trim();
+
+    if (!trimmedEmployeeId) {
+      setStatus("error");
+      setFeedbackMessage("Enter your Ramp ID to request access.");
+      return;
+    }
+
+    if (!hasAuthorizedUsersConfigured) {
+      setStatus("error");
+      setFeedbackMessage(
+        "No authorized IDs are configured. Update NEXT_PUBLIC_AUTHORIZED_USERS to continue.",
+      );
+      return;
+    }
+
+    if (isAuthorizedUser(trimmedEmployeeId)) {
+      setStatus("success");
+      setFeedbackMessage(
+        "Access granted! Launch the Verbiage Trainer to continue.",
+      );
+      return;
+    }
+
+    setStatus("error");
+    setFeedbackMessage(
+      "Employee ID " +
+        trimmedEmployeeId +
+        " is not authorized for the trainer.",
+    );
+  };
+
   return (
     <>
       <Head>
@@ -35,7 +81,7 @@ const Home: NextPage = () => {
               Sign in with your Ramp employee credentials to continue your verbal mastery journey.
             </p>
           </div>
-          <form className="space-y-7" onSubmit={(event) => event.preventDefault()}>
+          <form className="space-y-7" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="employeeId" className="block text-sm font-medium text-slate-100/80">
                 Employee ID
@@ -50,6 +96,11 @@ const Home: NextPage = () => {
                 required
                 className="mt-2 w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-white/50 shadow-inner focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
                 placeholder="Enter your Ramp ID"
+                value={employeeId}
+                onChange={(event) => {
+                  setEmployeeId(event.target.value);
+                  setStatus("idle");
+                }}
               />
             </div>
             <div>
@@ -72,6 +123,11 @@ const Home: NextPage = () => {
                 required
                 className="mt-2 w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-white/50 shadow-inner focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
                 placeholder="••••••••"
+                value={password}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  setStatus("idle");
+                }}
               />
             </div>
             <button
@@ -80,10 +136,27 @@ const Home: NextPage = () => {
             >
               Enter Polar workspace
             </button>
+            {status !== "idle" && (
+              <p
+                className={
+                  "text-sm " +
+                  (status === "success" ? "text-emerald-200" : "text-rose-200")
+                }
+                role="status"
+                aria-live="polite"
+              >
+                {feedbackMessage}
+              </p>
+            )}
           </form>
           <p className="mt-10 text-center text-xs text-slate-200/70">
             Need help? Reach out in #polar-support for quick verification assistance.
           </p>
+          {!hasAuthorizedUsersConfigured && (
+            <p className="mt-3 text-center text-xs text-rose-200/80" role="alert">
+              Configure allowed IDs via NEXT_PUBLIC_AUTHORIZED_USERS to enable access checks.
+            </p>
+          )}
         </div>
       </main>
     </>

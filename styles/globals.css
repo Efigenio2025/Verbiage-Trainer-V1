@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- Ashwood Gray tokens --- */
+:root {
+  --ash-card-border: rgba(255, 255, 255, 0.10);
+  --ash-card-bg: rgba(255, 255, 255, 0.05);
+}
+
+html, body, #__next {
+  height: 100%;
+}
+
+body {
+  @apply text-white;
+  background-image: linear-gradient(to bottom, #4b5563, #6b7280); /* fallback */
+}
+
+.card-ash {
+  @apply rounded-2xl border backdrop-blur-xl;
+  border-color: var(--ash-card-border);
+  background: var(--ash-card-bg);
+}

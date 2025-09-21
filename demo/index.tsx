@@ -13,7 +13,8 @@ import {
   UserIcon
 } from "lucide-react";
 
-export type ViewState = "home" | "library" | "profile" | "detail";
+export type ViewState = "login" | "home" | "library" | "profile" | "detail";
+type PrimaryView = "home" | "library" | "profile";
 
 type ModuleCategory = "Phonetic" | "De-ice" | "Movement";
 type ModuleFilter = "All" | ModuleCategory;
@@ -237,12 +238,118 @@ function ModuleCard({ m, onOpen }: ModuleCardProps) {
   );
 }
 
-type BottomBarProps = {
-  view: ViewState;
-  onChange: (view: ViewState) => void;
+type EmployeeLoginProps = {
+  onLogin: () => void;
 };
 
-const bottomTabs: Array<{ key: ViewState; label: string; icon: React.ComponentType<React.SVGProps<SVGSVGElement>> }> = [
+function EmployeeLogin({ onLogin }: EmployeeLoginProps) {
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [touched, setTouched] = React.useState(false);
+
+  const hasEmailError = touched && email.trim().length === 0;
+  const hasPasswordError = touched && password.trim().length === 0;
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (email.trim() && password.trim()) {
+      onLogin();
+      return;
+    }
+    setTouched(true);
+  };
+
+  const emailErrorId = hasEmailError ? "login-email-error" : undefined;
+  const passwordErrorId = hasPasswordError ? "login-password-error" : undefined;
+
+  return (
+    <div className="flex flex-1 flex-col justify-center gap-8 pb-16 pt-12">
+      <div className="flex flex-col items-center gap-4 text-center text-white">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/10">
+          <UserIcon className="h-8 w-8" aria-hidden="true" />
+        </div>
+        <h1 className="text-lg font-semibold">Employee Login</h1>
+      </div>
+
+      <form
+        className={cn(card, "space-y-4 px-5 py-6 text-white/90")}
+        onSubmit={handleSubmit}
+        aria-label="Employee login form"
+      >
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-white/70" htmlFor="login-email">
+            Email
+          </label>
+          <input
+            id="login-email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className={cn(
+              "w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/40",
+              hasEmailError && "border-red-400/70"
+            )}
+            placeholder="you@example.com"
+            aria-invalid={hasEmailError || undefined}
+            aria-describedby={emailErrorId}
+            autoComplete="email"
+          />
+          {hasEmailError && (
+            <p id={emailErrorId} className="text-xs text-red-200">
+              Enter your email to continue.
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-white/70" htmlFor="login-password">
+            Password
+          </label>
+          <input
+            id="login-password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className={cn(
+              "w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/40",
+              hasPasswordError && "border-red-400/70"
+            )}
+            placeholder="••••••••"
+            aria-invalid={hasPasswordError || undefined}
+            aria-describedby={passwordErrorId}
+            autoComplete="current-password"
+          />
+          {hasPasswordError && (
+            <p id={passwordErrorId} className="text-xs text-red-200">
+              Enter your password to continue.
+            </p>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          className="w-full rounded-xl border border-white/15 bg-white/20 px-4 py-3 text-sm font-medium text-white transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/40"
+        >
+          Login
+        </button>
+
+        <button
+          type="button"
+          className="text-center text-xs font-medium text-white/70 hover:text-white/90"
+        >
+          Forgot password?
+        </button>
+      </form>
+    </div>
+  );
+}
+
+type BottomBarProps = {
+  view: PrimaryView;
+  onChange: (view: PrimaryView) => void;
+};
+
+const bottomTabs: Array<{ key: PrimaryView; label: string; icon: React.ComponentType<React.SVGProps<SVGSVGElement>> }> = [
   { key: "home", label: "Home", icon: UserIcon },
   { key: "library", label: "Library", icon: BookOpen },
   { key: "profile", label: "Profile", icon: IdCard }
@@ -476,8 +583,12 @@ const modules: Module[] = [
   }
 ];
 
+function isPrimaryView(view: ViewState): view is PrimaryView {
+  return view === "home" || view === "library" || view === "profile";
+}
+
 export default function EmployeeApp() {
-  const [view, setView] = React.useState<ViewState>("home");
+  const [view, setView] = React.useState<ViewState>("login");
   const [selectedModule, setSelectedModule] = React.useState<Module | null>(null);
 
   const handleNavigate = React.useCallback((next: ViewState) => {
@@ -492,9 +603,23 @@ export default function EmployeeApp() {
     setView("detail");
   }, []);
 
+  const handleLogin = React.useCallback(() => {
+    setView("home");
+  }, []);
+
+  const navigatePrimary = React.useCallback(
+    (next: PrimaryView) => {
+      handleNavigate(next);
+    },
+    [handleNavigate]
+  );
+
+  const showBottomBar = isPrimaryView(view);
+
   return (
     <div className="flex min-h-screen w-full justify-center bg-gradient-to-b from-[#4b5563] to-[#6b7280] text-white">
       <div className="relative flex min-h-screen w-full max-w-[430px] flex-col px-5 pb-24 pt-8">
+        {view === "login" && <EmployeeLogin onLogin={handleLogin} />}
         {view === "home" && <EmployeeDashboardHome />}
         {view === "library" && (
           <TrainingLibrary modules={modules} onBack={() => handleNavigate("home")} onOpenModule={openModule} />
@@ -504,7 +629,7 @@ export default function EmployeeApp() {
           <TrainingDetail module={selectedModule} onBack={() => handleNavigate("library")} />
         )}
 
-        {view !== "detail" && <BottomBar view={view} onChange={handleNavigate} />}
+        {showBottomBar && <BottomBar view={view} onChange={navigatePrimary} />}
       </div>
     </div>
   );
